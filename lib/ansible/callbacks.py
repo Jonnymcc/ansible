@@ -396,7 +396,7 @@ class CliRunnerCallbacks(DefaultRunnerCallbacks):
     def on_unreachable(self, host, res):
         if type(res) == dict:
             res = res.get('msg','')
-        display("%s | FAILED => %s" % (host, res), stderr=True, color='red', runner=self.runner)
+        display("%s | FAILED => %s" % (ec2_lookup.lookup_instance_name(host), res), stderr=True, color='red', runner=self.runner)
         if self.options.tree:
             utils.write_tree_file(
                 self.options.tree, host,
@@ -405,11 +405,11 @@ class CliRunnerCallbacks(DefaultRunnerCallbacks):
         super(CliRunnerCallbacks, self).on_unreachable(host, res)
 
     def on_skipped(self, host, item=None):
-        display("%s | skipped" % (host), runner=self.runner)
+        display("%s | skipped" % (ec2_lookup.lookup_instance_name(host)), runner=self.runner)
         super(CliRunnerCallbacks, self).on_skipped(host, item)
 
     def on_error(self, host, err):
-        display("err: [%s] => %s\n" % (host, err), stderr=True, runner=self.runner)
+        display("err: [%s] => %s\n" % (ec2_lookup.lookup_instance_name(host), err), stderr=True, runner=self.runner)
         super(CliRunnerCallbacks, self).on_error(host, err)
 
     def on_no_hosts(self):
@@ -425,11 +425,11 @@ class CliRunnerCallbacks(DefaultRunnerCallbacks):
         super(CliRunnerCallbacks, self).on_async_poll(host, res, jid, clock)
 
     def on_async_ok(self, host, res, jid):
-        display("<job %s> finished on %s => %s"%(jid, host, utils.jsonify(res,format=True)), runner=self.runner)
+        display("<job %s> finished on %s => %s"%(jid, ec2_lookup.lookup_instance_name(host), utils.jsonify(res,format=True)), runner=self.runner)
         super(CliRunnerCallbacks, self).on_async_ok(host, res, jid)
 
     def on_async_failed(self, host, res, jid):
-        display("<job %s> FAILED on %s => %s"%(jid, host, utils.jsonify(res,format=True)), color='red', stderr=True, runner=self.runner)
+        display("<job %s> FAILED on %s => %s"%(jid, ec2_lookup.lookup_instance_name(host), utils.jsonify(res,format=True)), color='red', stderr=True, runner=self.runner)
         super(CliRunnerCallbacks, self).on_async_failed(host,res,jid)
 
     def _on_any(self, host, result):
@@ -460,6 +460,7 @@ class PlaybookRunnerCallbacks(DefaultRunnerCallbacks):
 
     def on_unreachable(self, host, results):
         item = None
+        host = ec2_lookup.lookup_instance_name(host)
         if type(results) == dict:
             item = results.get('item', None)
         if item:
@@ -471,7 +472,7 @@ class PlaybookRunnerCallbacks(DefaultRunnerCallbacks):
 
     def on_failed(self, host, results, ignore_errors=False):
 
-
+        host = ec2_lookup.lookup_instance_name(host)
         results2 = results.copy()
         results2.pop('invocation', None)
 
@@ -504,6 +505,7 @@ class PlaybookRunnerCallbacks(DefaultRunnerCallbacks):
 
     def on_ok(self, host, host_result):
 
+        host = ec2_lookup.lookup_instance_name(host)
         item = host_result.get('item', None)
 
         host_result2 = host_result.copy()
@@ -540,6 +542,7 @@ class PlaybookRunnerCallbacks(DefaultRunnerCallbacks):
 
     def on_error(self, host, err):
 
+        host = ec2_lookup.lookup_instance_name(host)
         item = err.get('item', None)
         msg = ''
         if item:
@@ -551,6 +554,7 @@ class PlaybookRunnerCallbacks(DefaultRunnerCallbacks):
         super(PlaybookRunnerCallbacks, self).on_error(host, err)
 
     def on_skipped(self, host, item=None):
+        host = ec2_lookup.lookup_instance_name(host)
         if constants.DISPLAY_SKIPPED_HOSTS:
             msg = ''
             if item:
