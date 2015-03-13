@@ -27,6 +27,8 @@ import fcntl
 import constants
 from ansible.color import stringc
 
+import ec2_lookup  # for looking up instance names from ~/.ec2-instance-cache
+
 import logging
 if constants.DEFAULT_LOG_PATH != '':
     path = constants.DEFAULT_LOG_PATH
@@ -248,6 +250,8 @@ class AggregateStats(object):
 def regular_generic_msg(hostname, result, oneline, caption):
     ''' output on the result of a module run that is not command '''
 
+    hostname = ec2_lookup.lookup_instance_name(hostname.encode('utf-8'))
+
     if not oneline:
         return "%s | %s >> %s\n" % (hostname, caption, utils.jsonify(result,format=True))
     else:
@@ -294,7 +298,7 @@ def command_generic_msg(hostname, result, oneline, caption):
     stderr = result.get('stderr', '')
     msg    = result.get('msg', '')
 
-    hostname = hostname.encode('utf-8')
+    hostname = ec2_lookup.lookup_instance_name(hostname.encode('utf-8'))
     caption  = caption.encode('utf-8')
 
     if not oneline:
